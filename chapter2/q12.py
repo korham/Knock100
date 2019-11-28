@@ -5,10 +5,10 @@
 
 import os
 
-def make_file_cut_col(in_file, out_file, col):
+def make_file_cut_col(in_file, out_file, col, delimiter="\t"):
     with open(in_file, encoding="utf-8") as in_f, \
     open(out_file, mode="w", encoding="utf-8") as out_f:
-        rows = [r.rstrip("\n").split("\t") for r in in_f.readlines()]
+        rows = [r.rstrip("\n").split(delimiter) for r in in_f.readlines()]
         for row in rows:
             out_f.write(row[col] + "\n")
 

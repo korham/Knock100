@@ -1,8 +1,9 @@
 import unittest
 import tempfile
 import os
+import string
 
-import q10, q11, q12, q13, q14, q15, q16
+import q10, q11, q12, q13, q14, q15, q16, q17, q18, q19
 
 class TestChapter2(unittest.TestCase):
     def setUp(self):
@@ -54,7 +55,32 @@ class TestChapter2(unittest.TestCase):
             self.assertEqual("row6\n", out_tf.readline())
             self.assertEqual("row7\n", out_tf.readline())
             self.assertFalse(out_tf.readline())
-    
+
+    def test_q12_delimiter(self):
+        tf = tempfile.NamedTemporaryFile(mode="r+", encoding="utf-8", delete=False)
+        out_tf = tempfile.NamedTemporaryFile(mode="r+", encoding="utf-8", delete=False)
+        tf.write("1,one,a\n")
+        tf.write("2,two,b\n")
+        tf.write("3,three,c\n")
+        tf.close()
+        out_tf.close()
+        try:
+            q12.make_file_cut_col(tf.name, out_tf.name, 2, ",")
+            with open(out_tf.name, encoding="utf-8") as o:
+                o.seek(0)
+                self.assertEqual("a\n", o.readline())
+                self.assertEqual("b\n", o.readline())
+                self.assertEqual("c\n", o.readline())
+                self.assertFalse(o.readline())
+        except:
+            raise
+        finally:
+            if os.path.exists(tf.name):
+                os.remove(tf.name)
+            if os.path.exists(out_tf.name):
+                os.remove(out_tf.name)
+
+
     def test_q13(self):
         try:
             left = tempfile.NamedTemporaryFile(mode="r+", encoding="utf-8", delete=False)
@@ -144,6 +170,98 @@ class TestChapter2(unittest.TestCase):
                 os.remove(self.tf_name + "ab")
             if os.path.exists(self.tf_name + "ac"):
                 os.remove(self.tf_name + "ac")
+
+    # 分割しようとすると接尾辞が不足する("zz"まで使い切る）ケース
+    def test_q16_too_many_rows(self):
+        num = 3
+        suffix_list = [s1+s2 for s1 in string.ascii_lowercase for s2 in string.ascii_lowercase]
+        too_many = tempfile.NamedTemporaryFile(mode="r+", encoding="utf-8", delete=False)
+        for i in range((num*len(suffix_list))+1):
+            too_many.write("row\ttest\t" +str(i) + "\n")
+        too_many.close()
+        out_dir = os.path.dirname(too_many.name)
+        try:
+            with self.assertRaises(Exception):
+                q16.make_splitted_files(too_many.name, out_dir, num)
+        except:
+            raise
+        finally:
+            if os.path.exists(too_many.name):
+                os.remove(too_many.name)
+            for suffix in suffix_list:
+                if os.path.exists(too_many.name + suffix):
+                    os.remove(too_many.name + suffix)
+
+    def test_q17(self):
+        q17_tf = tempfile.NamedTemporaryFile(mode="r+", encoding="utf-8", delete=False)
+        q17_tf.write("A\t1\n")
+        q17_tf.write("A\t2\n")
+        q17_tf.write("B\t3\n")
+        q17_tf.write("B\t4\n")
+        q17_tf.write("C\t5\n")
+        q17_tf.write("D\t6\n")
+        q17_tf.write("E\t7\n")
+        q17_tf.write("D\t8\n")
+        q17_tf.write("C\t9\n")
+        q17_tf.write("C\t10\n")
+        q17_tf.close()
+        try:
+            result = q17.sort_uniq(q17_tf.name)
+            self.assertEqual({"A", "B", "C", "D", "E"}, result)
+        except:
+            raise
+        finally:
+            if os.path.exists(q17_tf.name):
+                os.remove(q17_tf.name)
+
+
+    def test_q18(self):
+        col = 2
+        q18_tf = tempfile.NamedTemporaryFile(mode="r+", encoding="utf-8", delete=False)
+        q18_tf.write("A\ta\t10\n")
+        q18_tf.write("B\tb\t40\n")
+        q18_tf.write("C\tc\t20\n")
+        q18_tf.write("D\td\t60\n")
+        q18_tf.write("E\te\t70\n")
+        q18_tf.write("F\tf\t50\n")
+        q18_tf.write("G\tg\t30\n")
+        q18_tf.close()
+        try:
+            result = q18.sort_reverse(q18_tf.name, col)
+            self.assertEqual(["E\te\t70\n",
+                              "D\td\t60\n",
+                              "F\tf\t50\n",
+                              "B\tb\t40\n",
+                              "G\tg\t30\n",
+                              "C\tc\t20\n",
+                              "A\ta\t10\n"], result)
+        except:
+            raise
+        finally:
+            if os.path.exists(q18_tf.name):
+                os.remove(q18_tf.name)
+
+    def test_q19(self):
+        tf = tempfile.NamedTemporaryFile(mode="r+", encoding="utf-8", delete=False)
+        tf.write("A\t1\n")
+        tf.write("A\t2\n")
+        tf.write("B\t3\n")
+        tf.write("B\t4\n")
+        tf.write("C\t5\n")
+        tf.write("D\t6\n")
+        tf.write("E\t7\n")
+        tf.write("D\t8\n")
+        tf.write("C\t9\n")
+        tf.write("C\t10\n")
+        tf.close()
+        try:
+            result = q19.count_sort(tf.name, 0, "\t")
+            self.assertEqual(["3 C\n", "2 A\n", "2 B\n", "2 D\n", "1 E\n"], result)
+        except:
+            raise
+        finally:
+            if os.path.exists(tf.name):
+                os.remove(tf.name)
 
 if __name__ == '__main__':
     unittest.main()

@@ -13,8 +13,8 @@ def make_splitted_files(file, out_dir, line_num):
     name, ext = os.path.splitext(basename)
     with open(file, encoding="utf-8") as f:
         lines = f.readlines()
-        # NOTE 接尾辞が不足するケース？
-        if len(lines) // line_num + 1 > len(suffix_list):
+        # 接尾辞が不足するケース
+        if len(lines) / line_num > len(suffix_list):
             raise Exception('Too Many Rows')
 
         stock_rows = []
