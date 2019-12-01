@@ -13,5 +13,5 @@ def make_file_tab_replaced(in_file, out_file):
 
 if __name__ == "__main__":
     in_file = os.path.join(os.path.dirname(__file__), '../DataSource/hightemp.txt')
-    out_file = os.path.join(os.path.dirname(__file__), '../Output/q11.txt')
+    out_file = os.path.join(os.path.dirname(__file__), '../Output/Chapter2/q11.txt')
     make_file_tab_replaced(in_file, out_file)
