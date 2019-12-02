@@ -1,7 +1,7 @@
 import unittest
-import tempfile, gzip, os, time
+import tempfile, gzip, os, time, textwrap
 
-import q20, q21, q22, q23
+import q20, q21, q22, q23, q24, q25
 
 class TestChapter3(unittest.TestCase):
     
@@ -65,6 +65,73 @@ class TestChapter3(unittest.TestCase):
                               ("サブセクション2.1", 2),
                               ("サブサブセクション2.1.1", 3),
                               ("サブセクション2.2", 2)], result)
+
+    def test_q24(self):
+        article = "[[ファイル:ファイル１]]\n" + \
+                  "[[:ファイル:ファイル２]]\n" + \
+                  "[[File:ファイル３|サムネイル|説明文]]\n" + \
+                  "[[Media:ファイル４]]\n" + \
+                  "aiueo[[Media:ファイル５]]aiueo\n" + \
+                  "[ファイル:記述ミス１]\n" + \
+                  "[::ファイル:記述ミス２]\n"
+        result = q24.pick_media_refference(article)
+        self.assertListEqual(["ファイル１",
+                              "ファイル２",
+                              "ファイル３",
+                              "ファイル４",
+                              "ファイル５"], result)
+
+    def test_q25_pick_basic_info_template(self):
+        article = "{{redirect|aiueo}}\n" + \
+                    "{{基礎情報 国\n" + \
+                    "|略名 = 某国\n" + \
+                    "|複数行 = あいう<br>\n" + \
+                    "えお\n" + \
+                    "}}\n" + \
+                    "{{別テンプレート\n" + \
+                    "|key = value\n" + \
+                    "|key2 = value2\n" + \
+                    "}}\n" + \
+                    "\n"              
+        result = q25.pick_basic_info_template(article)
+        expected = "{{基礎情報 国\n" + \
+                    "|略名 = 某国\n" + \
+                    "|複数行 = あいう<br>\n" + \
+                    "えお\n" + \
+                    "}}"
+        self.assertEqual(expected, result)
+
+    def test_q25_pick_basic_info_template_nesting(self):
+        article = "{{redirect|aiueo}}\n" + \
+                    "{{基礎情報 国\n" + \
+                    "|略名 = 某国\n" + \
+                    "|入れ子 = {{あいう}}\n" + \
+                    "}}\n" + \
+                    "{{別テンプレート\n" + \
+                    "|key = value\n" + \
+                    "|key2 = value2\n" + \
+                    "}}\n" + \
+                    "\n"              
+        result = q25.pick_basic_info_template(article)
+        expected = "{{基礎情報 国\n" + \
+                    "|略名 = 某国\n" + \
+                    "|入れ子 = {{あいう}}\n" + \
+                    "}}"
+        self.assertEqual(expected, result)
+
+    def test_q25_to_dict_wiki_template(self):
+        template = "{{基礎情報 国\n" + \
+                    "|略名 = 某国\n" + \
+                    "|複数行 = あいう<br>\n" + \
+                    "えお\n" + \
+                    "|国章画像 = [[ファイル:ファイル名.jpg|85px|某国の国章]]\n" + \
+                    "|国歌 = [[某歌|あいうえお]]\n" + \
+                    "}}"
+        result = q25.to_dict_wiki_template(template)
+        self.assertDictEqual({"略名":"某国",
+                              "複数行":"あいう<br>\nえお",
+                              "国章画像": "[[ファイル:ファイル名.jpg|85px|某国の国章]]",
+                              "国歌": "[[某歌|あいうえお]]"}, result)
 
 if __name__ == "__main__":
     unittest.main()
